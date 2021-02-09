@@ -27,7 +27,14 @@ def scrape(url):
 
     # Note: Download and replace argument with path to the driver executable.
     # Simply download the executable and move it into the webdrivers folder.
-    driver = webdriver.Chrome('./webdrivers/chromedriver')
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--no-sandbox')
+    #chrome_options.add_argument('--disable-gpu')
+    #self.driver = webdriver.Chrome(chrome_options=chrome_options)
+
+
+    driver = webdriver.Chrome('./webdrivers/chromedriver',chrome_options=chrome_options)
+
 
     # Navigates to the URL, maximizes the current window, and
     # then suspends execution for (at least) 5 seconds (this
