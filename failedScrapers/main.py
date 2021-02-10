@@ -33,7 +33,7 @@ def scrape(url):
     #self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
 
-    driver = webdriver.Chrome('./webdrivers/chromedriver',chrome_options=chrome_options)
+    driver = webdriver.Chrome('./webdrivers/chromedriver.exe',chrome_options=chrome_options)
 
 
     # Navigates to the URL, maximizes the current window, and

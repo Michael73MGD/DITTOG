@@ -1,0 +1,2 @@
+Add option for single video scraping
+Add to readme for setup/usage

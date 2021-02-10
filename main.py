@@ -1,104 +1,42 @@
-"""
-Main script to scrape the comments of any Youtube video.
-
-Example:
-    $ python main.py YOUTUBE_VIDEO_URL
-"""
-
+#Reads videos.csv and updates data.csv by calling DITTOG.py
 import csv
-import io
-from selenium import webdriver
-from selenium.common import exceptions
-import sys
+import random
 import time
+import sys
+import subprocess
+from youtube_comment_scraper import *
 
-#driver = webdriver.Chrome('/mnt/c/Users/micha/Desktop/DITOG/')  # Optional argument, if not specified will search path.
-def scrape(url):
-    """
-    Extracts the comments from the Youtube video given by the URL.
-
-    Args:
-        url (str): The URL to the Youtube video
-
-    Raises:
-        selenium.common.exceptions.NoSuchElementException:
-        When certain elements to look for cannot be found
-    """
-
-    # Note: Download and replace argument with path to the driver executable.
-    # Simply download the executable and move it into the webdrivers folder.
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--no-sandbox')
-    #chrome_options.add_argument('--disable-gpu')
-    #self.driver = webdriver.Chrome(chrome_options=chrome_options)
-
-
-    driver = webdriver.Chrome('./webdrivers/chromedriver',chrome_options=chrome_options)
-
-
-    # Navigates to the URL, maximizes the current window, and
-    # then suspends execution for (at least) 5 seconds (this
-    # gives time for the page to load).
-    driver.get(url)
-    driver.maximize_window()
-    time.sleep(5)
-
-    try:
-        # Extract the elements storing the video title and
-        # comment section.
-        title = driver.find_element_by_xpath('//*[@id="container"]/h1/yt-formatted-string').text
-        comment_section = driver.find_element_by_xpath('//*[@id="comments"]')
-    except exceptions.NoSuchElementException:
-        # Note: Youtube may have changed their HTML layouts for
-        # videos, so raise an error for sanity sake in case the
-        # elements provided cannot be found anymore.
-        error = "Error: Double check selector OR "
-        error += "element may not yet be on the screen at the time of the find operation"
-        print(error)
-
-    # Scroll into view the comment section, then allow some time
-    # for everything to be loaded as necessary.
-    driver.execute_script("arguments[0].scrollIntoView();", comment_section)
-    time.sleep(7)
-
-    # Scroll all the way down to the bottom in order to get all the
-    # elements loaded (since Youtube dynamically loads them).
-    last_height = driver.execute_script("return document.documentElement.scrollHeight")
-
-    while True:
-        # Scroll down 'til "next load".
-        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-
-        # Wait to load everything thus far.
+videos = 'videos.csv'
+with open(videos, 'r', encoding="utf-8", newline='') as csvfile:  
+    csvreader = csv.reader(csvfile, delimiter=',')  
+    line_count = 0
+    for row in csvreader:            
+        line_count += 1
+        url = row[1]
+        title = row[0]
+        print("Opening " + url)
+        print("Title is " + title)
+        youtube.open(url)
         time.sleep(2)
-
-        # Calculate new scroll height and compare with last scroll height.
-        new_height = driver.execute_script("return document.documentElement.scrollHeight")
-        if new_height == last_height:
-            break
-        last_height = new_height
-
-    # One last scroll just in case.
-    driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-
-    try:
-        # Extract the elements storing the usernames and comments.
-        username_elems = driver.find_elements_by_xpath('//*[@id="author-text"]')
-        comment_elems = driver.find_elements_by_xpath('//*[@id="content-text"]')
-    except exceptions.NoSuchElementException:
-        error = "Error: Double check selector OR "
-        error += "element may not yet be on the screen at the time of the find operation"
-        print(error)
-
-    print("> VIDEO TITLE: " + title + "\n")
-
-    with io.open('results.csv', 'w', newline='', encoding="utf-16") as file:
-        writer = csv.writer(file, delimiter =",", quoting=csv.QUOTE_ALL)
-        writer.writerow(["Username", "Comment"])
-        for username, comment in zip(username_elems, comment_elems):
-            writer.writerow([username.text, comment.text])
-
-    driver.close()
-
-if __name__ == "__main__":
-    scrape(sys.argv[1])
+        youtube.keypress("pagedown")
+        time.sleep(2)
+        for i in range(0,100):      #Enough for about 500 comments
+            youtube.keypress("pagedown")
+            time.sleep(0.3)
+        time.sleep(1)
+        response=youtube.video_comments()
+        data=response['body']
+        comment_count = len(data)
+        print("Downloaded "+str(comment_count)+" comments.")
+        time.sleep(3)
+        filename = "data.csv"
+        with open(filename, 'a', encoding="utf-8", newline='') as csvfile2:  
+            csvwriter = csv.writer(csvfile2)   
+            for i in range(0,comment_count):
+                print("Testing comment #"+str(i))
+                comment = data[i]["Comment"]
+                if "Doug is the" in comment or "Doug's the" in comment or "doug is the" in comment or "doug's the" in comment or "Doug the" in comment or "doug the" in comment or "the kind of guy" in comment or "the type of guy" in comment or "the kinda guy" in comment:
+                    user = data[i]["user"]
+                    likes = data[i]["Likes"]
+                    line = [comment,user,likes,title]
+                    csvwriter.writerow(line)
