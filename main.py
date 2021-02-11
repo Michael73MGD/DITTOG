@@ -1,10 +1,9 @@
 #Reads videos.csv and updates data.csv by calling DITTOG.py
 import csv
-import random
 import time
-import sys
-import subprocess
-from youtube_comment_scraper import *
+from selenium import webdriver
+
+
 
 videos = 'videos.csv'
 with open(videos, 'r', encoding="utf-8", newline='') as csvfile:  
@@ -16,27 +15,38 @@ with open(videos, 'r', encoding="utf-8", newline='') as csvfile:
         title = row[0]
         print("Opening " + url)
         print("Title is " + title)
-        youtube.open(url)
+        driver=webdriver.Chrome('./chromedriver')
+        driver.get(url)
+        time.sleep(.5)
+        #driver.maximize_window()
+        driver.set_window_size(1600, 900)
         time.sleep(2)
-        youtube.keypress("pagedown")
+        driver.execute_script('window.scrollTo(1, 500);')
         time.sleep(2)
-        for i in range(0,100):      #Enough for about 500 comments
-            youtube.keypress("pagedown")
-            time.sleep(0.3)
-        time.sleep(1)
-        response=youtube.video_comments()
-        data=response['body']
-        comment_count = len(data)
-        print("Downloaded "+str(comment_count)+" comments.")
+        for i in range(1, 50):
+            j = i*1000
+            driver.execute_script('window.scrollTo(1, '+str(j)+');')
+            time.sleep(1)
         time.sleep(3)
-        filename = "data.csv"
+        comment_div=driver.find_element_by_xpath('//*[@id="contents"]')
+        comments=comment_div.find_elements_by_xpath('//*[@id="content-text"]')
+        authors = comment_div.find_elements_by_xpath('//*[@id="author-text"]')
+        votes = comment_div.find_elements_by_xpath('//*[@id="vote-count-middle"]')
+        time.sleep(.5)
+        comment_count = len(comments)
+        print("Loaded "+str(comment_count)+" comments.")
+        filename = "comments.csv"
         with open(filename, 'a', encoding="utf-8", newline='') as csvfile2:  
             csvwriter = csv.writer(csvfile2)   
             for i in range(0,comment_count):
-                print("Testing comment #"+str(i))
-                comment = data[i]["Comment"]
+                comment = comments[i].text
+                #print("Scanning comment: "+comment)
                 if "Doug is the" in comment or "Doug's the" in comment or "doug is the" in comment or "doug's the" in comment or "Doug the" in comment or "doug the" in comment or "the kind of guy" in comment or "the type of guy" in comment or "the kinda guy" in comment:
-                    user = data[i]["user"]
-                    likes = data[i]["Likes"]
+                    print("Found one: "+comment)
+                    user = authors[i].text
+                    likes = votes[i].text
                     line = [comment,user,likes,title]
                     csvwriter.writerow(line)
+
+        driver.quit()
+        time.sleep(1)

@@ -1,0 +1,8 @@
+README.md
+setup.py
+youtube_comment_scraper/__init__.py
+youtube_comment_scraper.egg-info/PKG-INFO
+youtube_comment_scraper.egg-info/SOURCES.txt
+youtube_comment_scraper.egg-info/dependency_links.txt
+youtube_comment_scraper.egg-info/requires.txt
+youtube_comment_scraper.egg-info/top_level.txt

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#UCsqjHFMB_JYTaEnf_vmTNqg
 
 import os, time, argparse, socket
 from selenium import webdriver
@@ -10,8 +11,9 @@ def init_web_driver():
     chrome_options = Options()
     #  Optional argument to run the driver headlessly
     chrome_options.add_argument("--headless")
-    #chrome_options.binary_location = "/usr/bin/google-chrome"
-    return webdriver.Chrome('./chromedriver.exe',chrome_options=chrome_options)
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.binary_location = "/usr/bin/google-chrome"
+    return webdriver.Chrome('./chromedriver',chrome_options=chrome_options)
 
 
 def scroll_to_bottom_of_page(web_driver):
